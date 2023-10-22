@@ -345,7 +345,7 @@
         function moveBucketRight() {
             const bucketWidth = bucket.offsetWidth;
             const noseRect = nose.getBoundingClientRect();
-            let bucketX = bucket.getBoundingClientRect().left + 40; // Сдвиг вправо
+            let bucketX = bucket.getBoundingClientRect().left + 80; // Сдвиг вправо
             if (bucketX + bucketWidth > noseRect.right) {
                 bucketX = noseRect.right - bucketWidth;
             }
