@@ -118,37 +118,6 @@
         let isDragging = false;
         let initialX = 0;
 
-        // Touch Event Handlers
-        document.addEventListener('touchstart', function (event) {
-            if (event.target === bucket) {
-                isDragging = true;
-                initialX = event.touches[0].clientX - parseInt(bucket.style.left);
-                event.preventDefault(); // Остановить действие по умолчанию, чтобы предотвратить прокрутку страницы
-            }
-        });
-
-        document.addEventListener('touchmove', function (event) {
-            if (isDragging) {
-                const moveX = event.touches[0].clientX;
-                const bucketWidth = bucket.offsetWidth;
-                const noseWidth = nose.offsetWidth;
-                let bucketX = moveX - initialX;
-                if (bucketX < 0) {
-                    bucketX = 0;
-                }
-                if (bucketX + bucketWidth > noseWidth) {
-                    bucketX = noseWidth - bucketWidth;
-                }
-                bucket.style.left = bucketX + 'px';
-                event.preventDefault(); // Остановить действие по умолчанию, чтобы предотвратить прокрутку страницы
-            }
-        });
-
-        document.addEventListener('touchend', function (event) {
-            isDragging = false;
-        });
-
-
         // Показать игру и скрыть меню
         function startGame() {
             menu.style.display = 'none';
@@ -330,6 +299,36 @@
         window.addEventListener('touchstart', touchStart);
         window.addEventListener('touchmove', touchMove);
         window.addEventListener('touchend', touchEnd);
+
+        // Touch Event Handlers
+        document.addEventListener('touchstart', function (event) {
+            if (event.target === bucket) {
+                isDragging = true;
+                initialX = event.touches[0].clientX - parseInt(bucket.style.left);
+                event.preventDefault(); // Остановить действие по умолчанию, чтобы предотвратить прокрутку страницы
+            }
+        });
+
+        document.addEventListener('touchmove', function (event) {
+            if (isDragging) {
+                const moveX = event.touches[0].clientX;
+                const bucketWidth = bucket.offsetWidth;
+                const noseWidth = nose.offsetWidth;
+                let bucketX = moveX - initialX;
+                if (bucketX < 0) {
+                    bucketX = 0;
+                }
+                if (bucketX + bucketWidth > noseWidth) {
+                    bucketX = noseWidth - bucketWidth;
+                }
+                bucket.style.left = bucketX + 'px';
+                event.preventDefault(); // Остановить действие по умолчанию, чтобы предотвратить прокрутку страницы
+            }
+        });
+
+        document.addEventListener('touchend', function (event) {
+            isDragging = false;
+        });
     </script>    
 </body>
 </html>
