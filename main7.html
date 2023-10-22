@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Страйдекс: Козявочная Ловля</title>
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+            overflow: hidden;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('cave_background.jpg') no-repeat center center fixed; /* Путь к изображению вашей пещеры */
+            background-size: cover;
+            cursor: url('cursor.png'), auto; /* Путь к изображению пинцета (курсора) */
+        }
+        #menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 20px;
+            border: 2px solid white;
+            border-radius: 10px;
+        }
+        #startButton {
+            background-color: #4CAF50;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        #nose {
+            display: none;
+            position: relative;
+            width: 100%;
+            height: 100%;
+            max-width: 400px; /* Максимальная ширина */
+            max-height: 600px; /* Максимальная высота */
+            border: 3px solid black; /* Черная рамка */
+            overflow: hidden;
+        }
+        #bucket {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20vw; /* Изменено на относительную ширину */
+            max-width: 80px; /* Максимальная ширина */
+            height: 30vh; /* Изменено на относительную высоту */
+            max-height: 100px; /* Максимальная высота */
+            background: url('bucket.png') no-repeat center center; /* Путь к изображению ведра */
+            background-size: cover;
+            touch-action: none; /* Запретить прокрутку страницы при касании */
+        }
+        .booger {
+            position: absolute;
+            width: 10vw; /* Изменено на относительную ширину */
+            max-width: 40px; /* Максимальная ширина */
+            height: 10vw; /* Изменено на относительную высоту */
+            max-height: 40px; /* Максимальная высота */
+            background: url('booger.png') no-repeat center center; /* Путь к изображению козявки */
+            background-size: cover;
+        }
+        .virus {
+            position: absolute;
+            width: 10vw; /* Изменено на относительную ширину */
+            max-width: 40px; /* Максимальная ширина */
+            height: 10vw; /* Изменено на относительную высоту */
+            max-height: 40px; /* Максимальная высота */
+            background: url('virus.png') no-repeat center center; /* Путь к изображению вируса */
+            background-size: cover;
+        }
+        #score {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div id="menu">
+        <h1>Страйдекс: Козявочная Ловля</h1>
+        <audio id="bgMusic" loop autoplay>
+            <source src="background_music.mp3" type="audio/mpeg">
+        </audio>
+        <button id="startButton">Играть</button>
+    </div>
+    <div id="nose">
+        <div id="bucket" draggable="true" ontouchstart="touchStart(event)" ontouchmove="touchMove(event)" ontouchend="touchEnd()"></div>
+        <div id="score">Score: 0</div>
+    </div>
+
+    <audio id="boogerSound" src="booger_sound.mp3"></audio>
+    <audio id="virusSound" src="virus_sound.mp3"></audio>
+
+    <script>
+        const menu = document.getElementById('menu');
+        const startButton = document.getElementById('startButton');
+        const bgMusic = document.getElementById('bgMusic');
+        const nose = document.getElementById('nose');
+        const bucket = document.getElementById('bucket');
+        const scoreElement = document.getElementById('score');
+        const boogerSound = document.getElementById('boogerSound');
+        const virusSound = document.getElementById('virusSound');
+        let score = 0;
+        let isDragging = false;
+        let initialX = 0;
+
+        // Показать игру и скрыть меню
+        function startGame() {
+            menu.style.display = 'none';
+            nose.style.display = 'block';
+            // Запуск игры
+            startGameLoop();
+        }
+
+        // Создание новой козявки
+        function createBooger() {
+            const booger = document.createElement('div');
+            booger.className = 'booger';
+            const randomX = Math.floor(Math.random() * (nose.offsetWidth - 20));
+            booger.style.left = randomX + 'px';
+            nose.appendChild(booger);
+
+            // Анимация падения козявки
+            const animation = booger.animate([{ top: '0' }, { top: '100%' }], 3500); // Увеличена скорость падения
+            animation.onfinish = () => {
+                nose.removeChild(booger);
+            };
+        }
+
+        // Создание нового вируса
+        function createVirus() {
+            const virus = document.createElement('div');
+            virus.className = 'virus';
+            const randomX = Math.floor(Math.random() * (nose.offsetWidth - 20));
+            virus.style.left = randomX + 'px';
+            nose.appendChild(virus);
+
+            // Анимация падения вируса
+            const animation = virus.animate([{ top: '0' }, { top: '100%' }], 3500); // Увеличена скорость падения
+            animation.onfinish = () => {
+                nose.removeChild(virus);
+            };
+        }
+
+        // Обработчик события начала перетаскивания ведра
+        function startDragging(event) {
+            if (event.target === bucket) {
+                isDragging = true;
+            }
+        }
+
+        // Обработчик события перемещения ведра
+        function moveBucket(event) {
+            if (isDragging) {
+                const bucketWidth = bucket.offsetWidth;
+                const noseRect = nose.getBoundingClientRect();
+                let bucketX = event.clientX - noseRect.left - bucketWidth / 2;
+                if (bucketX < 0) {
+                    bucketX = 0;
+                }
+                if (bucketX + bucketWidth > noseRect.width) {
+                    bucketX = noseRect.width - bucketWidth;
+                }
+                bucket.style.left = bucketX + 'px';
+            }
+        }
+
+        // Завершение перетаскивания
+        function stopDragging() {
+            isDragging = false;
+        }
+
+        // Проверка, находится ли козявка или вирус в ведре
+        function isOverBucket(booger) {
+            const boogerRect = booger.getBoundingClientRect();
+            const bucketRect = bucket.getBoundingClientRect();
+            return (
+                boogerRect.right >= bucketRect.left &&
+                boogerRect.left <= bucketRect.right &&
+                boogerRect.bottom >= bucketRect.top &&
+                boogerRect.top <= bucketRect.bottom
+            );
+        }
+
+        // Обновление счета козявок
+        function updateScore() {
+            score++;
+            scoreElement.textContent = 'Score: ' + score;
+            boogerSound.currentTime = 0;
+            boogerSound.play();
+            if (score === 100) {
+                endGame();
+            }
+        }
+
+        // Обновление счета вирусов
+        function updateScorevir() {
+            score -= 5; // Отнимайте -5 баллов
+            scoreElement.textContent = 'Score: ' + score;
+            boogerSound.currentTime = 0;
+            boogerSound.play();
+            if (score === 100) {
+                endGame();
+            }
+        }
+
+        // Завершение игры
+        function endGame() {
+            // Остановка игры и вывод сообщения
+            alert("Ля, я вижу тебе реально нехуй делать, да ахах? " +
+                "Раз ты дошел до сюда, отправь мне слово 'лямбда' в директ инстаграма " +
+                "и получишь крутой VPN бесплатно на 3 недели. Дальше ничего интересного нет)");
+        }
+
+        // Создание и удаление козявок и вирусов
+        function startGameLoop() {
+            setInterval(createBooger, 1000); // Увеличено количество падающих козявок
+            setInterval(createVirus, 4000); // Добавлены падающие вирусы
+            window.addEventListener('mousedown', startDragging);
+            window.addEventListener('mousemove', moveBucket);
+            window.addEventListener('mouseup', stopDragging);
+        
+            // Основной игровой цикл
+            setInterval(function () {
+                const boogers = document.querySelectorAll('.booger');
+                const viruses = document.querySelectorAll('.virus');
+                boogers.forEach(function (booger) {
+                    if (isOverBucket(booger)) {
+                        updateScore();
+                        nose.removeChild(booger);
+                    }
+                });
+                viruses.forEach(function (virus) {
+                    if (isOverBucket(virus)) {
+                        updateScorevir();
+                        nose.removeChild(virus);
+                        virusSound.currentTime = 0;
+                        virusSound.play(); // Воспроизводим звук при пойманном вирусе
+                    }
+                });
+            }, 100);
+        }
+
+        startButton.addEventListener('click', startGame);
+    </script>    
+</body>
+</html>
