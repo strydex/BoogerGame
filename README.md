@@ -1,2 +1,2 @@
 # BoogerGame
-Funny Javascript game to get something useful :)
+This repositiry is shitty, please dont look at it 😄
